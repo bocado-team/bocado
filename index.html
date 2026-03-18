@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bocado - Kitchen Social Cloud</title>
+    <title>Bocado - Live Community</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
         :root { --bg-color: #f4f1ea; --primary: #2d4635; --secondary: #a65d39; --accent: #d9c5b2; }
-        body { background-color: var(--bg-color); font-family: 'Outfit', sans-serif; color: #1a1a1a; }
+        body { background-color: var(--bg-color); font-family: 'Outfit', sans-serif; color: #1a1a1a; transition: 0.3s; }
+        .dark-mode { background-color: #1a1a1a; color: #f4f1ea; }
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
         
         .recipe-card { transition: all 0.3s ease; background: white; border: 1px solid var(--accent); }
-        .recipe-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(45, 70, 53, 0.1); }
+        .dark-mode .recipe-card { background: #262626; border-color: #444; color: white; }
         .hidden { display: none; }
     </style>
 </head>
@@ -20,38 +20,74 @@
 
     <nav class="bg-[#2d4635] p-4 shadow-lg text-[#f4f1ea] sticky top-0 z-50">
         <div class="container mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showSection('feed')">
                 <div class="bg-[#d9c5b2] w-10 h-10 rounded-lg flex items-center justify-center text-[#2d4635] font-bold text-xl">B</div>
                 <span class="text-2xl font-800 tracking-tighter">Bocado</span>
             </div>
-            <button onclick="toggleModal()" class="bg-[#a65d39] px-6 py-2 rounded-full font-bold shadow-md hover:scale-105 transition">
-                + Pubblica
-            </button>
+            <div class="flex items-center space-x-4">
+                <button onclick="showSection('settings')" class="text-xl">⚙️</button>
+                <button onclick="toggleModal()" class="bg-[#a65d39] px-5 py-2 rounded-full font-bold shadow-md hover:scale-105 transition">+ Crea</button>
+            </div>
         </div>
     </nav>
 
-    <main class="container mx-auto px-4 py-8">
-        <div id="status" class="text-center text-xs font-bold text-secondary mb-6 italic">Connessione al Cloud...</div>
-        <div id="recipeContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div id="filterBar" class="bg-white border-b border-accent p-3 sticky top-[72px] z-40 shadow-sm">
+        <div class="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-3">
+            <input type="text" id="searchInput" oninput="filterLocal()" placeholder="Cerca ingredienti o piatti..." class="p-2 border rounded-lg outline-none text-sm">
+            <div class="flex gap-2">
+                <input type="number" id="filterKcal" oninput="filterLocal()" placeholder="Max Kcal" class="w-1/2 p-2 border rounded-lg text-sm">
+                <input type="number" id="filterProt" oninput="filterLocal()" placeholder="Min Prot" class="w-1/2 p-2 border rounded-lg text-sm">
             </div>
+            <select id="sortPop" onchange="filterLocal()" class="p-2 border rounded-lg text-sm">
+                <option value="recent">Più recenti</option>
+                <option value="popular">Più popolari</option>
+            </select>
+        </div>
+    </div>
+
+    <main class="container mx-auto px-4 py-8">
+        
+        <section id="feedSection">
+            <div id="status" class="text-center text-xs font-bold text-secondary mb-6 italic">Sincronizzazione Cloud...</div>
+            <div id="recipeContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <section id="settingsSection" class="hidden max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-xl border border-accent">
+            <h2 class="text-2xl font-bold mb-6 text-[#2d4635]">Impostazioni App</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Modalità Notte</span> <input type="checkbox" onchange="document.body.classList.toggle('dark-mode')"></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Notifiche Push</span> <input type="checkbox" checked></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Lingua: IT</span> <input type="checkbox" checked></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Mostra Calorie</span> <input type="checkbox" checked></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Privato</span> <input type="checkbox"></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Auto-save</span> <input type="checkbox" checked></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Video HD</span> <input type="checkbox"></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Metriche: Grammi</span> <input type="checkbox" checked></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Suoni App</span> <input type="checkbox"></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Usa AI Consigli</span> <input type="checkbox" checked></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Animazioni</span> <input type="checkbox" checked></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Localizzazione</span> <input type="checkbox"></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Condivisione Auto</span> <input type="checkbox"></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Sincro Cloud</span> <input type="checkbox" checked></label>
+                <label class="flex justify-between p-2 bg-gray-50 rounded"><span>Beta Tester</span> <input type="checkbox"></label>
+            </div>
+            <button onclick="showSection('feed')" class="w-full mt-6 bg-[#2d4635] text-white py-3 rounded-xl font-bold">Torna al Feed</button>
+        </section>
     </main>
 
     <div id="modal" class="fixed inset-0 bg-black/50 hidden backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl border-t-8 border-[#2d4635]">
-            <h2 class="text-2xl font-bold mb-4 text-[#2d4635]">Condividi una Ricetta</h2>
+        <div class="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl">
+            <h2 class="text-2xl font-bold mb-4 text-[#2d4635]">Pubblica</h2>
             <form id="recipeForm" class="space-y-4">
-                <input type="text" id="name" placeholder="Nome del piatto" class="w-full p-2 border-b border-accent outline-none focus:border-primary" required>
-                <input type="text" id="author" placeholder="Il tuo nome Chef" class="w-full p-2 border rounded text-sm">
-                <textarea id="ingredients" placeholder="Ingredienti (separati da virgola)..." class="w-full p-2 border rounded text-sm" rows="2" required></textarea>
-                <textarea id="steps" placeholder="Procedimento passo dopo passo..." class="w-full p-2 border rounded text-sm" rows="3" required></textarea>
+                <input type="text" id="name" placeholder="Titolo" class="w-full p-2 border-b border-accent outline-none" required>
+                <input type="text" id="author" placeholder="Tuo Nome" class="w-full p-2 border rounded">
+                <textarea id="ingredients" placeholder="Ingredienti..." class="w-full p-2 border rounded" required></textarea>
+                <textarea id="steps" placeholder="Procedimento..." class="w-full p-2 border rounded" required></textarea>
                 <div class="grid grid-cols-2 gap-4">
-                    <input type="number" id="kcal" placeholder="Kcal" class="p-2 border rounded text-sm">
-                    <input type="number" id="protein" placeholder="Proteine (g)" class="p-2 border rounded text-sm">
+                    <input type="number" id="kcal" placeholder="Kcal">
+                    <input type="number" id="protein" placeholder="Proteine (g)">
                 </div>
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" onclick="toggleModal()" class="text-gray-400 font-semibold">Annulla</button>
-                    <button type="submit" id="btnSubmit" class="bg-[#2d4635] text-white px-8 py-2 rounded-full font-bold shadow-md">Pubblica Ora</button>
-                </div>
+                <button type="submit" id="btnSubmit" class="w-full bg-[#2d4635] text-white py-3 rounded-full font-bold">Invia al Cloud</button>
             </form>
         </div>
     </div>
@@ -60,81 +96,83 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Configurazione usando le tue chiavi
         const firebaseConfig = {
             apiKey: "AIzaSyBuAFofFjuhlmS3zbtk28AzxfbKKwLZ3n0",
             authDomain: "bocado-c7012.firebaseapp.com",
             projectId: "bocado-c7012",
             storageBucket: "bocado-c7012.firebasestorage.app",
             messagingSenderId: "396484410548",
-            appId: "1:396484410548:web:48271c034df66d849c6be1",
-            measurementId: "G-FK6KQLVXJJ"
+            appId: "1:396484410548:web:48271c034df66d849c6be1"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const recipesCol = collection(db, "recipes");
+        let allRecipes = [];
 
-        // Funzione per pubblicare
+        // Pubblica
         document.getElementById('recipeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSubmit');
             btn.disabled = true;
-            btn.innerText = "Invio...";
-
-            try {
-                await addDoc(recipesCol, {
-                    name: document.getElementById('name').value,
-                    author: document.getElementById('author').value || "Chef Bocado",
-                    ingredients: document.getElementById('ingredients').value,
-                    steps: document.getElementById('steps').value,
-                    kcal: parseInt(document.getElementById('kcal').value) || 0,
-                    protein: parseInt(document.getElementById('protein').value) || 0,
-                    createdAt: new Date()
-                });
-                toggleModal();
-                document.getElementById('recipeForm').reset();
-            } catch (err) {
-                console.error("Errore Firebase:", err);
-                alert("Assicurati di aver impostato le regole di scrittura su Firestore!");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Pubblica Ora";
-            }
+            await addDoc(recipesCol, {
+                name: document.getElementById('name').value,
+                author: document.getElementById('author').value || "Chef",
+                ingredients: document.getElementById('ingredients').value,
+                steps: document.getElementById('steps').value,
+                kcal: parseInt(document.getElementById('kcal').value) || 0,
+                protein: parseInt(document.getElementById('protein').value) || 0,
+                createdAt: new Date()
+            });
+            toggleModal();
+            document.getElementById('recipeForm').reset();
+            btn.disabled = false;
         });
 
-        // Caricamento in tempo reale
-        const q = query(recipesCol, orderBy("createdAt", "desc"));
-        onSnapshot(q, (snapshot) => {
-            const recipes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        // Caricamento e Filtro Locale (veloce)
+        onSnapshot(query(recipesCol, orderBy("createdAt", "desc")), (snapshot) => {
+            allRecipes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            filterLocal();
+            document.getElementById('status').innerText = "Live Cloud Online 🟢";
+        });
+
+        window.filterLocal = () => {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const maxKcal = parseInt(document.getElementById('filterKcal').value) || Infinity;
+            const minProt = parseInt(document.getElementById('filterProt').value) || 0;
+            const sort = document.getElementById('sortPop').value;
+
+            let filtered = allRecipes.filter(r => 
+                (r.name.toLowerCase().includes(search) || r.ingredients.toLowerCase().includes(search)) &&
+                r.kcal <= maxKcal && r.protein >= minProt
+            );
+
+            render(filtered);
+        };
+
+        function render(data) {
             const container = document.getElementById('recipeContainer');
-            document.getElementById('status').innerText = `Community Online: ${recipes.length} ricette 🟢`;
-            
-            container.innerHTML = recipes.map(r => `
-                <div class="recipe-card rounded-2xl overflow-hidden p-6 flex flex-col">
-                    <div class="flex justify-between items-start mb-2">
-                        <div>
-                            <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">Chef ${r.author}</span>
-                            <h3 class="text-xl font-bold text-primary">${r.name}</h3>
-                        </div>
-                    </div>
+            container.innerHTML = data.map(r => `
+                <div class="recipe-card rounded-2xl p-6 flex flex-col shadow-sm">
+                    <span class="text-[10px] font-bold text-secondary uppercase tracking-widest">${r.author}</span>
+                    <h3 class="text-xl font-bold text-primary mb-2">${r.name}</h3>
                     <div class="flex gap-2 mb-4">
                         <span class="text-[10px] font-bold bg-secondary/10 text-secondary px-2 py-1 rounded">🔥 ${r.kcal} KCAL</span>
                         <span class="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded">💪 ${r.protein}G PROT</span>
                     </div>
-                    <p class="text-xs text-gray-500 font-bold uppercase mb-1">Ingredienti</p>
-                    <p class="text-sm text-gray-700 mb-4">${r.ingredients}</p>
-                    <div class="mt-auto pt-4 border-t border-accent/20">
-                        <p class="text-sm text-gray-600 italic line-clamp-3">"${r.steps}"</p>
-                    </div>
+                    <p class="text-sm text-gray-700 mb-2"><strong>Ingredienti:</strong> ${r.ingredients}</p>
+                    <p class="text-sm text-gray-600 italic">"${r.steps.substring(0, 80)}..."</p>
                 </div>
             `).join('');
-        });
+        }
     </script>
 
     <script>
-        function toggleModal() {
-            document.getElementById('modal').classList.toggle('hidden');
+        function toggleModal() { document.getElementById('modal').classList.toggle('hidden'); }
+        function showSection(id) {
+            document.getElementById('feedSection').classList.toggle('hidden', id === 'settings');
+            document.getElementById('filterBar').classList.toggle('hidden', id === 'settings');
+            document.getElementById('settingsSection').classList.toggle('hidden', id === 'feed');
         }
     </script>
 </body>
